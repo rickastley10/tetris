@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>tetris</title>
+<style>
+    body {
+    margin: 0;
+    background: #111;
+    overflow: hidden;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 100vw;
+    height: 100vh;
+}
+    canvas {
+    background: black;
+    touch-action: none;
+
+    height: min(100vh, 200vw);
+    width: auto;
+
+    image-rendering: pixelated;   /* optional */
+    
+}
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<script>
+/* ============================================================
+   CONFIG
+   ============================================================ */
+const WINDOW_WIDTH = 200;
+const WINDOW_HEIGHT = 400;
+const w = 40;
+const h = 40;
+
+/* ============================================================
+   GLOBALS
+   ============================================================ */
+const canvas = document.getElementById("game");
+canvas.width = WINDOW_WIDTH;
+canvas.height = WINDOW_HEIGHT;
+
+const ctx = canvas.getContext("2d");
+
+let running = true;
+let dir = "right";
+
+/* ============================================================
+   INPUT
+   ============================================================ */
+const keys = {};
+
+window.addEventListener("keydown", (e) => {
+    keys[e.key] = true;
+});
+
+window.addEventListener("keyup", (e) => {
+    keys[e.key] = false;
+});
+
+/* ============================================================
+   UNIVERSAL INPUT (Single handler for Mouse + Touch)
+   ============================================================ */
+function handleInput(e) {
+    e.preventDefault();
+    
+    let clientX, clientY;
+    if (e.touches) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY; 
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;  
+    }
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;  
+    
+    // Scale coordinates to match canvas size
+    const scaleX = WINDOW_WIDTH / rect.width;
+    const scaleY = WINDOW_HEIGHT / rect.height;
+    const canvasX = x * scaleX;
+    const canvasY = y * scaleY;
+    
+    if(gameover===0){
+        if (canvasY <= WINDOW_HEIGHT / 3)input_queue = 1;
+        else if (canvasX >= WINDOW_WIDTH / 2)input_queue = 3;
+        else input_queue = 2;
+    }
+    else input_queue=4
+    
+
+}
+
+canvas.addEventListener("touchstart", handleInput);
+canvas.addEventListener("mousedown", handleInput);
+
+/* ============================================================
+   GAME STATE
+   ============================================================ */
+
+function draw_piece(){
+	grid[current_y][current_x]=piece_type
+	for(i=0;i<8;i+=2){
+		y=current_y+piece[i]
+		x=current_x+piece[i+1]
+		grid[y][x]=2
+	}
+}
+function clear_piece(){
+	grid[current_y][current_x]=clear_type
+	for(i=0;i<8;i+=2){
+		y=current_y+piece[i]
+		x=current_x+piece[i+1]
+		grid[y][x]=clear_type
+	}
+}
+
+function colision(){
+    colision_detected=0
+    for(i=0;i<8;i+=2){
+        y=current_y+piece[i]+ move_y
+		x=current_x+piece[i+1]+ move_x
+        if(x < 0 || x >= 10 || y < 0 || y >= 20 || grid[y][x] ===1){
+            colision_detected=1
+            break
+        }
+    }
+}
+
+function rotate_piece(){
+    if(rotate_type===1){
+        
+        for(i=0;i<8;i++) piece_backup[i]=piece[i]
+        reset_rotation()
+
+        //piece=[-2,0,  -1,0,  0,0,  0,1]
+        flip_piece[0] = piece[1];
+        flip_piece[1] = -piece[0];
+        flip_piece[2] = piece[3];
+        flip_piece[3] = -piece[2];
+        flip_piece[4] = piece[5];
+        flip_piece[5] = -piece[4];
+        flip_piece[6] = piece[7];
+        flip_piece[7] = -piece[6];
+
+        
+        for(i=0;i<8;i++) piece[i]=flip_piece[i]
+        move_x=0;move_y=0;colision()
+        if(colision_detected===0){
+            rotate_type++
+        }
+        else{
+            for(i=0;i<8;i++) piece[i]=piece_backup[i]
+        }
+    }
+    else if(rotate_type===2){
+        for(i=0;i<8;i++) piece_backup[i]=piece[i]
+        reset_rotation()
+
+        flip_piece[0] = piece[0] * (-1);
+        flip_piece[1] = piece[1] * (-1);
+        flip_piece[2] = piece[2] * (-1);
+        flip_piece[3] = piece[3] * (-1);
+        flip_piece[4] = piece[4] * (-1);
+        flip_piece[5] = piece[5] * (-1);
+        flip_piece[6] = piece[6] * (-1);
+        flip_piece[7] = piece[7] * (-1);
+
+
+        for(i=0;i<8;i++) piece[i]=flip_piece[i]
+        move_x=0;move_y=0;colision()
+        if(colision_detected===0){
+            rotate_type++
+        }
+        else{
+            for(i=0;i<8;i++) piece[i]=piece_backup[i]
+        }
+    }
+    else if (rotate_type===3){
+        for(i=0;i<8;i++) piece_backup[i]=piece[i]
+        reset_rotation()
+
+        flip_piece[0] = piece[1];  flip_piece[1] = -piece[0];
+        flip_piece[2] = piece[3];  flip_piece[3] = -piece[2];
+        flip_piece[4] = piece[5];  flip_piece[5] = -piece[4];
+        flip_piece[6] = piece[7];  flip_piece[7] = -piece[6];
+        for(i = 0; i < 8; i++) piece[i] = flip_piece[i];
+        flip_piece[0] = piece[0] * (-1);
+        flip_piece[1] = piece[1] * (-1);
+        flip_piece[2] = piece[2] * (-1);
+        flip_piece[3] = piece[3] * (-1);
+        flip_piece[4] = piece[4] * (-1);
+        flip_piece[5] = piece[5] * (-1);
+        flip_piece[6] = piece[6] * (-1);
+        flip_piece[7] = piece[7] * (-1);
+                            
+
+        for(i=0;i<8;i++) piece[i]=flip_piece[i]
+        move_x=0;move_y=0;colision()
+        if(colision_detected===0){
+            rotate_type++
+        }
+        else{
+            for(i=0;i<8;i++) piece[i]=piece_backup[i]
+        }
+    }
+    else{
+        reset_rotation()
+        rotate_type=1
+    }
+}
+function reset_rotation(){
+    if(piece_type == 3) for( i = 0; i < 8; i++) piece[i] = L_shape[i];
+    if(piece_type == 4) for( i = 0; i < 8; i++) piece[i] = J_shape[i];
+    if(piece_type == 5) for( i = 0; i < 8; i++) piece[i] = S_shape[i];
+    if(piece_type == 6) for( i = 0; i < 8; i++) piece[i] = O_shape[i];
+    if(piece_type == 7) for( i = 0; i < 8; i++) piece[i] = Z_shape[i];
+    if(piece_type == 8) for( i = 0; i < 8; i++) piece[i] = I_shape[i];
+    if(piece_type == 9) for( i = 0; i < 8; i++) piece[i] = T_shape[i];
+}
+
+
+function reset(){
+    for(y=0;y<20;y++){
+        for(x=0;x<10;x++){
+            grid[y][x]=0
+        }
+    }
+
+    current_x=3
+    current_y=5
+    piece_type=3
+    rotate_type=1
+
+    clear_type=0
+
+    piece_backup=[-2,0,  -1,0,  0,0,  0,1]
+    piece=[-2,0,  -1,0,  0,0,  0,1]
+    flip_piece=[-2,0,  -1,0,  0,0,  0,1]
+
+}
+grid=[
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0]]
+
+current_x=3
+current_y=5
+piece_type=3
+rotate_type=1
+
+clear_type=0
+
+piece_backup=[-2,0,  -1,0,  0,0,  0,1]
+piece=[-2,0,  -1,0,  0,0,  0,1]
+flip_piece=[-2,0,  -1,0,  0,0,  0,1]
+
+L_shape=[-2,0,  -1,0,  0,0,  0,1]//       3
+J_shape=[-2,0,  -1,0,  0,0,  0,-1];//     4
+S_shape=[-1,0,  -1,1,  0,0,  0,-1];//     5
+O_shape=[1,0,  1,1,  0,0,  0,1];//        6
+Z_shape=[-1,0, -1,-1, 0,0, 0,1];//        7
+I_shape=[2,0,  1,0,  0,0,  3,0];//        8
+T_shape=[0,-1,  0,1,  0,0,  -1,0];//      9
+
+move_x=0
+move_y=0
+
+timer=10
+keytimer=3
+level=0
+score=0
+input_queue=0
+
+gameover=0
+
+colision_detected=0
+/* ============================================================
+   MAIN LOOP
+   ============================================================ */
+function game_loop() {
+    if (!running) return;
+        clear_piece()
+        ctx.font = "15px Arial";
+        if(keys[" "] || input_queue===4){
+            if(gameover===1){gameover=0;reset()}
+        }
+        if(gameover===0){
+
+
+            if(keytimer===0){
+                if (keys["w"] || input_queue === 1){
+                    rotate_piece()
+                    input_queue=0
+                }
+
+                if (keys["s"]){
+                    timer=0
+                }
+                
+                if (keys["d"] || input_queue === 3){
+                    move_y=0; move_x=1; colision();
+                    if(colision_detected===0){
+                        current_x++
+                    }
+                    input_queue=0
+                }
+
+                if (keys["a"] || input_queue === 2){
+                    move_y=0; move_x=-1; colision();
+                    if(colision_detected===0){
+                        current_x--
+                    }
+                    input_queue=0
+                }
+                keytimer=4
+            }else{keytimer--}
+            
+            
+            if(grid[3][3]===1 || grid[4][3]===1){
+                gameover=1;
+            }
+
+            
+            move_y=1; move_x=0; colision();
+            if(current_y===19 || colision_detected==1){
+                clear_type=1
+                clear_piece()
+                clear_type=0
+
+                current_x=3
+                current_y=3
+                piece_type=Math.floor(Math.random()*7+3)
+                reset_rotation()
+            }
+            for(y=0;y<20;y++){
+                if(grid[y][0]===1 && grid[y][1]===1 && grid[y][2]===1 && grid[y][3]===1 && grid[y][4]===1 && 
+                    grid[y][5]===1 && grid[y][6]===1 && grid[y][7]===1 && grid[y][8]===1 && grid[y][9]===1){
+                    grid.splice(y, 1);
+                    grid.unshift(new Array(10).fill(0));
+                    score+=100
+                }
+            }
+            if(score>=1000){
+                level++
+                score-=1000
+            }
+            
+            if(timer>0){
+                timer--
+            }
+            if(timer===0){
+                move_y=1; move_x=0; colision();
+                if(current_y<19 && colision_detected===0){
+                    current_y++
+                }
+
+                timer=Math.max(1, 20-level*2)
+            }
+        }
+        /* ===== RENDER ===== */
+        //clear screen
+        ctx.fillStyle="#000000"
+        ctx.fillRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+		draw_piece()
+		for(y=0; y<20;y++){
+			for(x=0; x<10;x++){
+				if(grid[y][x]>0){
+					ctx.fillStyle="#AAAAAA"
+        			ctx.fillRect(x*20, y*20, 20, 20)
+				}
+			}
+		}
+        ctx.fillStyle="#FF2222"
+        totalscore=level*1000+score
+        ctx.fillText(totalscore, 20, 20)
+
+        if(gameover===1){
+            ctx.fillStyle="#FF2222"
+            ctx.fillText("GAME OVER", WINDOW_WIDTH/6, WINDOW_HEIGHT/2)
+            ctx.fillText("press [space] to restart", WINDOW_WIDTH/6-20, WINDOW_HEIGHT/2+40)
+            ctx.fillText("tap the screen to restart", WINDOW_WIDTH/6-20, WINDOW_HEIGHT/2+60)
+            
+        }
+		
+        
+        
+
+
+    setTimeout(() => {
+        requestAnimationFrame(game_loop);
+    }, 20);
+}
+
+game_loop();
+</script>
+</body>
+</html>
