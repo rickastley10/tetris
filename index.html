@@ -258,18 +258,18 @@ function game_loop() {
 
 
             if(keytimer===0){
-                if (keys["w"] || input_queue === 1){
+                if (keys["w"] || input_queue === 1 || keys["ArrowUp"] || keys["i"]){
                     rotate_piece()
                     input_queue=0
                     keytimer=3
                 }
 
-                if (keys["s"]){
+                if (keys["s"] || keys["ArrowDown"] || keys["k"]){
                     timer=0
                     keytimer=1
                 }
                 
-                if (keys["d"] || input_queue === 3){
+                if (keys["d"] || input_queue === 3 || keys["ArrowRight"] || keys["l"]){
                     move_y=0; move_x=1; colision();
                     if(colision_detected===0){
                         current_x++
@@ -278,7 +278,7 @@ function game_loop() {
                     keytimer=3
                 }
 
-                if (keys["a"] || input_queue === 2){
+                if (keys["a"] || input_queue === 2 || keys["ArrowLeft"] || keys["j"]){
                     move_y=0; move_x=-1; colision();
                     if(colision_detected===0){
                         current_x--
