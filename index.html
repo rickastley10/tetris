@@ -137,87 +137,28 @@ function colision(){
         }
     }
 }
+function rotate_piece() {
 
-function rotate_piece(){
-    if(rotate_type===1){
-        
-        for(i=0;i<8;i++) piece_backup[i]=piece[i]
-        reset_rotation()
+    for (let i = 0; i < 8; i++) piece_backup[i] = piece[i];
 
-        //piece=[-2,0,  -1,0,  0,0,  0,1]
-        flip_piece[0] = piece[1];
-        flip_piece[1] = -piece[0];
-        flip_piece[2] = piece[3];
-        flip_piece[3] = -piece[2];
-        flip_piece[4] = piece[5];
-        flip_piece[5] = -piece[4];
-        flip_piece[6] = piece[7];
-        flip_piece[7] = -piece[6];
-
-        
-        for(i=0;i<8;i++) piece[i]=flip_piece[i]
-        move_x=0;move_y=0;colision()
-        if(colision_detected===0){
-            rotate_type++
-        }
-        else{
-            for(i=0;i<8;i++) piece[i]=piece_backup[i]
-        }
+    for (let i = 0; i < 8; i += 2) {
+        flip_piece[i]     =  piece[i+1];
+        flip_piece[i + 1] = -piece[i];
     }
-    else if(rotate_type===2){
-        for(i=0;i<8;i++) piece_backup[i]=piece[i]
-        reset_rotation()
-
-        flip_piece[0] = piece[0] * (-1);
-        flip_piece[1] = piece[1] * (-1);
-        flip_piece[2] = piece[2] * (-1);
-        flip_piece[3] = piece[3] * (-1);
-        flip_piece[4] = piece[4] * (-1);
-        flip_piece[5] = piece[5] * (-1);
-        flip_piece[6] = piece[6] * (-1);
-        flip_piece[7] = piece[7] * (-1);
+    for (let i = 0; i < 8; i++) piece[i] = flip_piece[i];
 
 
-        for(i=0;i<8;i++) piece[i]=flip_piece[i]
-        move_x=0;move_y=0;colision()
-        if(colision_detected===0){
-            rotate_type++
+    move_x = 0; move_y = 0;
+    colision();
+
+    if (colision_detected === 1) {
+
+        for (let i = 0; i < 8; i++) piece[i] = piece_backup[i];
+    } else {
+        rotate_type++
+        if(rotate_type>4){
+            rotate_type=1
         }
-        else{
-            for(i=0;i<8;i++) piece[i]=piece_backup[i]
-        }
-    }
-    else if (rotate_type===3){
-        for(i=0;i<8;i++) piece_backup[i]=piece[i]
-        reset_rotation()
-
-        flip_piece[0] = piece[1];  flip_piece[1] = -piece[0];
-        flip_piece[2] = piece[3];  flip_piece[3] = -piece[2];
-        flip_piece[4] = piece[5];  flip_piece[5] = -piece[4];
-        flip_piece[6] = piece[7];  flip_piece[7] = -piece[6];
-        for(i = 0; i < 8; i++) piece[i] = flip_piece[i];
-        flip_piece[0] = piece[0] * (-1);
-        flip_piece[1] = piece[1] * (-1);
-        flip_piece[2] = piece[2] * (-1);
-        flip_piece[3] = piece[3] * (-1);
-        flip_piece[4] = piece[4] * (-1);
-        flip_piece[5] = piece[5] * (-1);
-        flip_piece[6] = piece[6] * (-1);
-        flip_piece[7] = piece[7] * (-1);
-                            
-
-        for(i=0;i<8;i++) piece[i]=flip_piece[i]
-        move_x=0;move_y=0;colision()
-        if(colision_detected===0){
-            rotate_type++
-        }
-        else{
-            for(i=0;i<8;i++) piece[i]=piece_backup[i]
-        }
-    }
-    else{
-        reset_rotation()
-        rotate_type=1
     }
 }
 function reset_rotation(){
@@ -320,10 +261,12 @@ function game_loop() {
                 if (keys["w"] || input_queue === 1){
                     rotate_piece()
                     input_queue=0
+                    keytimer=3
                 }
 
                 if (keys["s"]){
                     timer=0
+                    keytimer=1
                 }
                 
                 if (keys["d"] || input_queue === 3){
@@ -332,6 +275,7 @@ function game_loop() {
                         current_x++
                     }
                     input_queue=0
+                    keytimer=3
                 }
 
                 if (keys["a"] || input_queue === 2){
@@ -340,8 +284,9 @@ function game_loop() {
                         current_x--
                     }
                     input_queue=0
+                    keytimer=5
                 }
-                keytimer=4
+                
             }else{keytimer--}
             
             
@@ -417,7 +362,7 @@ function game_loop() {
 
     setTimeout(() => {
         requestAnimationFrame(game_loop);
-    }, 20);
+    }, 40);
 }
 
 game_loop();
