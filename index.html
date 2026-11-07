@@ -218,6 +218,8 @@ current_y=5
 piece_type=3
 rotate_type=1
 
+drop_timer=10
+
 clear_type=0
 
 piece_backup=[-2,0,  -1,0,  0,0,  0,1]
@@ -297,14 +299,23 @@ function game_loop() {
             
             move_y=1; move_x=0; colision();
             if(current_y===19 || colision_detected==1){
-                clear_type=1
-                clear_piece()
-                clear_type=0
+                if(drop_timer>0){
+                    drop_timer--
+                }
+                if(drop_timer===0){
 
-                current_x=3
-                current_y=3
-                piece_type=Math.floor(Math.random()*7+3)
-                reset_rotation()
+                    clear_type=1
+                    clear_piece()
+                    clear_type=0
+
+                    current_x=3
+                    current_y=3
+                    piece_type=Math.floor(Math.random()*7+3)
+                    reset_rotation()
+
+                    drop_timer=Math.max(1, 10-level*1)
+
+                }
             }
             for(y=0;y<20;y++){
                 if(grid[y][0]===1 && grid[y][1]===1 && grid[y][2]===1 && grid[y][3]===1 && grid[y][4]===1 && 
