@@ -94,8 +94,9 @@ function handleInput(e) {
     
     if(gameover===0){
         if (canvasY <= WINDOW_HEIGHT / 3)input_queue = 1;
+        else if (canvasY >= WINDOW_HEIGHT-WINDOW_HEIGHT/3)input_queue = 4;
         else if (canvasX >= WINDOW_WIDTH / 2)input_queue = 3;
-        else input_queue = 2;
+        else if (canvasX < WINDOW_WIDTH / 2)input_queue = 2;
     }
     else input_queue=4
     
@@ -266,8 +267,9 @@ function game_loop() {
                     keytimer=3
                 }
 
-                if (keys["s"] || keys["ArrowDown"] || keys["k"]){
+                if (keys["s"] || input_queue === 4 || keys["ArrowDown"] || keys["k"]){
                     timer=0
+                    input_queue=0
                     keytimer=1
                 }
                 
@@ -293,6 +295,9 @@ function game_loop() {
             
             
             if(grid[3][3]===1 || grid[4][3]===1){
+                score=0;
+                level=0;
+
                 gameover=1;
             }
 
